@@ -19,6 +19,17 @@ pub fn open_data() -> Value {
     }
 }
 
+pub fn get_stop_words<'a>() -> Vec<String> {
+    let f = std::fs::read_to_string("stopwords.txt").unwrap();
+
+    let mut words = vec![];
+    for item in f.split_whitespace() {
+        words.push(String::from(item));
+    }
+
+    words
+}
+
 pub fn write_data(data: Value) -> std::io::Result<()> {
     let mut f = OpenOptions::new()
         .write(true)

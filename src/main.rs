@@ -18,11 +18,10 @@ fn add(data: Json<AddData>) -> Json<AddData> {
     let req = data.into_inner();
     let mut store = data::open_data();
 
-    store["paper"].as_array_mut().unwrap().append(
-        [json!({"id": req.id, "text": cut::cut(&req.text)})]
-            .to_vec()
-            .as_mut(),
-    );
+    store["paper"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"id": req.id, "text": cut::cut(&req.text)}));
     data::write_data(store).expect("Failed to write to data.json");
 
     Json(AddData {
@@ -33,7 +32,5 @@ fn add(data: Json<AddData>) -> Json<AddData> {
 
 #[launch]
 fn rocket() -> _ {
-    let store = data::open_data();
-    println!("{}", store);
     rocket::build().mount("/", routes![add])
 }
