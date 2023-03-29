@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use crate::data;
 use serde_json::{json, Value};
 
@@ -34,7 +36,7 @@ pub fn get_tf_array(sep_text: Vec<&str>) -> Vec<Value> {
     let mut sorted_sep_text = sep_text.clone();
     sorted_sep_text.sort();
 
-    let mut res: Vec<Value> = [].to_vec();
+    let mut res: Vec<Value> = vec![];
 
     let mut i = 0;
     while i < sorted_sep_text.len() {
@@ -54,8 +56,7 @@ pub fn get_tf_array(sep_text: Vec<&str>) -> Vec<Value> {
 }
 
 // Get the tf-idf(smooth) characteristics
-pub fn get_tf_idf_array(paper: Vec<Value>) -> Vec<f64> {
-    let store = data::open_data();
+pub fn get_tf_idf_array(paper: Vec<Value>, store: Value) -> Vec<f64> {
     let names = store["feature_names"].as_array().unwrap();
 
     let mut res: Vec<f64> = vec![];
@@ -97,4 +98,42 @@ pub fn cosine_similarity(v_a: Vec<f64>, v_b: Vec<f64>) -> f64 {
     }
 
     product_sum / (a_square_sum.sqrt() * b_square_sum.sqrt())
+}
+
+pub fn get_global_similarity(id: String, tf_array: Vec<Value>) -> Vec<(f64, String)> {
+    let store = data::open_data();
+    let papers = store["paper"].as_array().unwrap().to_vec();
+
+    let cur_tf_idf_array = get_tf_idf_array(tf_array, store.clone());
+    let mut res = vec![];
+
+    for paper in papers {
+        if paper["i"].as_str().unwrap().to_string() != id {
+            let tar_tf_idf_array =
+                get_tf_idf_array(paper["t"].as_array().unwrap().to_vec(), store.clone());
+
+            res.push((
+                cosine_similarity(cur_tf_idf_array.clone(), tar_tf_idf_array),
+                paper["i"].as_str().unwrap().to_string(),
+            ));
+        }
+    }
+
+    // Sort & put NaN to last
+    res.sort_by(|a, b| -> Ordering {
+        if a.0.is_nan() || a.0 < b.0 {
+            Ordering::Greater
+        } else if b.0.is_nan() || a.0 > b.0 {
+            Ordering::Less
+        } else {
+            Ordering::Equal
+        }
+    });
+
+    let mut ret = vec![];
+    for i in 0..std::cmp::min(5, res.len()) {
+        ret.push(res[i].clone());
+    }
+
+    ret
 }

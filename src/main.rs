@@ -1,6 +1,6 @@
-use process::update_feature_names;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use serde_json::json;
+use jieba_rs::Jieba;
 
 mod cut;
 mod data;
@@ -9,19 +9,35 @@ mod process;
 #[macro_use]
 extern crate rocket;
 
+#[macro_use]
+extern crate lazy_static;
+
 #[derive(Deserialize, Serialize, Debug)]
 struct AddData {
     id: String,
     text: String,
 }
 
-#[post("/add", format = "json", data = "<data>")]
-fn add(data: Json<AddData>) -> Json<AddData> {
-    let req = data.into_inner();
-    let mut store = data::open_data();
-    let tmp = store.clone();
+#[derive(Serialize, Debug)]
+struct ResData {
+    similarity: Vec<(f64, String)>,
+}
 
-    let sep_text = cut::cut(&req.text);
+lazy_static! {
+    static ref JIEBA: Jieba = Jieba::new();
+}
+
+#[post("/add", format = "json", data = "<data>")]
+fn add(data: Json<AddData>) -> Json<ResData> {
+    let mut store = data::open_data();
+
+    let req = data.into_inner();
+    // Remove is_whitespace
+    let trimmed = req.text.chars().filter(|c| !c.is_whitespace()).collect();
+    // Cut text
+    let sep_text = cut::cut(&trimmed, JIEBA.clone());
+    // Get tf array of current text
+    let tf_array = process::get_tf_array(sep_text.clone());
 
     // Add paper
     // "i" -> "id"
@@ -29,18 +45,18 @@ fn add(data: Json<AddData>) -> Json<AddData> {
     store["paper"]
         .as_array_mut()
         .unwrap()
-        .push(json!({"i": req.id, "t": process::get_tf_array(sep_text.clone())}));
+        .push(json!({"i": req.id.clone(), "t": tf_array}));
     data::write_data(store).expect("Failed to write to data.json");
 
-    update_feature_names(sep_text);
+    // Update df
+    process::update_feature_names(sep_text);
+
+    let res = process::get_global_similarity(req.id.clone(), tf_array);
 
     // test
-    println!("{:?}", process::cosine_similarity(process::get_tf_idf_array(tmp["paper"][0]["t"].as_array().unwrap().to_vec()), process::get_tf_idf_array(tmp["paper"][1]["t"].as_array().unwrap().to_vec())));
+    // println!("{:?}", res);
 
-    Json(AddData {
-        id: req.id,
-        text: req.text,
-    })
+    Json(ResData { similarity: res })
 }
 
 #[launch]

@@ -1,9 +1,8 @@
 use crate::data;
 use jieba_rs::Jieba;
 
-// Cut paper w/ jieba
-pub fn cut<'a>(text: &'a String) -> Vec<&'a str> {
-    let jieba = Jieba::new();
+// Cut paper with jieba
+pub fn cut<'a>(text: &'a String, jieba: Jieba) -> Vec<&'a str> {
     let sep_list = jieba.cut(text.as_str(), false).to_vec();
 
     // Use stopwords
