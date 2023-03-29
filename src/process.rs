@@ -119,7 +119,7 @@ pub fn get_global_similarity(id: String, tf_array: &Vec<Value>) -> Vec<(f64, Str
         }
     }
 
-    // Sort & put NaN to last
+    // Sort and put NaN to last
     res.sort_by(|a, b| -> Ordering {
         if a.0.is_nan() || a.0 < b.0 {
             Ordering::Greater
