@@ -11,7 +11,7 @@ pub fn update_feature_names(sep_text: Vec<&str>) -> () {
 
     for word in sep_text {
         let mut find = false;
-        for i in 0..names.clone().len() {
+        for i in 0..names.len() {
             let name = &mut names[i];
             if name["n"].as_str().unwrap() == word {
                 find = true;
@@ -32,7 +32,7 @@ pub fn update_feature_names(sep_text: Vec<&str>) -> () {
 
 // "n" -> "name"
 // "t" -> "tf"
-pub fn get_tf_array(sep_text: Vec<&str>) -> Vec<Value> {
+pub fn get_tf_array(sep_text: &Vec<&str>) -> Vec<Value> {
     let mut sorted_sep_text = sep_text.clone();
     sorted_sep_text.sort();
 
@@ -56,7 +56,7 @@ pub fn get_tf_array(sep_text: Vec<&str>) -> Vec<Value> {
 }
 
 // Get the tf-idf(smooth) characteristics
-pub fn get_tf_idf_array(paper: Vec<Value>, store: Value) -> Vec<f64> {
+pub fn get_tf_idf_array(paper: &Vec<Value>, store: &Value) -> Vec<f64> {
     let names = store["feature_names"].as_array().unwrap();
 
     let mut res: Vec<f64> = vec![];
@@ -64,7 +64,7 @@ pub fn get_tf_idf_array(paper: Vec<Value>, store: Value) -> Vec<f64> {
 
     for name in names {
         let mut found = false;
-        for word in paper.clone() {
+        for word in paper {
             if word["n"].as_str().unwrap() == name["n"].as_str().unwrap() {
                 // tf-idf = tf * idf
                 // idf(smooth) = ln((1 + nd) / (1 + df)) + 1
@@ -86,7 +86,7 @@ pub fn get_tf_idf_array(paper: Vec<Value>, store: Value) -> Vec<f64> {
     res
 }
 
-pub fn cosine_similarity(v_a: Vec<f64>, v_b: Vec<f64>) -> f64 {
+pub fn cosine_similarity(v_a: &Vec<f64>, v_b: &Vec<f64>) -> f64 {
     let mut product_sum = 0.0;
     let mut a_square_sum = 0.0;
     let mut b_square_sum = 0.0;
@@ -100,20 +100,20 @@ pub fn cosine_similarity(v_a: Vec<f64>, v_b: Vec<f64>) -> f64 {
     product_sum / (a_square_sum.sqrt() * b_square_sum.sqrt())
 }
 
-pub fn get_global_similarity(id: String, tf_array: Vec<Value>) -> Vec<(f64, String)> {
+pub fn get_global_similarity(id: String, tf_array: &Vec<Value>) -> Vec<(f64, String)> {
     let store = data::open_data();
     let papers = store["paper"].as_array().unwrap().to_vec();
 
-    let cur_tf_idf_array = get_tf_idf_array(tf_array, store.clone());
+    let cur_tf_idf_array = get_tf_idf_array(tf_array, &store);
     let mut res = vec![];
 
     for paper in papers {
         if paper["i"].as_str().unwrap().to_string() != id {
             let tar_tf_idf_array =
-                get_tf_idf_array(paper["t"].as_array().unwrap().to_vec(), store.clone());
+                get_tf_idf_array(&paper["t"].as_array().unwrap().to_vec(), &store);
 
             res.push((
-                cosine_similarity(cur_tf_idf_array.clone(), tar_tf_idf_array),
+                cosine_similarity(&cur_tf_idf_array, &tar_tf_idf_array),
                 paper["i"].as_str().unwrap().to_string(),
             ));
         }
