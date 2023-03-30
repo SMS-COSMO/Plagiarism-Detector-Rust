@@ -1,11 +1,11 @@
 use jieba_rs::Jieba;
 use rocket::serde::{json::Json, Deserialize, Serialize};
-use serde_json::json;
 
 mod cut;
 mod data;
 mod process;
 
+// Lazy initialize jieba
 lazy_static! {
     static ref JIEBA: Jieba = Jieba::new();
 }
@@ -29,10 +29,10 @@ struct ResData {
 
 #[post("/add", format = "json", data = "<data>")]
 fn add(data: Json<AddData>) -> Json<ResData> {
+    let req = data.into_inner();
     let mut store = data::open_data();
 
-    let req = data.into_inner();
-    // Remove is_whitespace
+    // Remove whitespace
     let trimmed = req.text.chars().filter(|c| !c.is_whitespace()).collect();
     // Cut text
     let sep_text = cut::cut(&trimmed, &JIEBA);
@@ -40,21 +40,14 @@ fn add(data: Json<AddData>) -> Json<ResData> {
     let tf_array = process::get_tf_array(&sep_text);
 
     // Add paper
-    // "i" -> "id"
-    // "t" -> "text"
-    store["paper"]
-        .as_array_mut()
-        .unwrap()
-        .push(json!({"i": req.id.clone(), "t": tf_array}));
-    data::write_data(store).expect("Failed to write to data.json");
-
+    process::add_paper(req.id.clone(), &tf_array, &mut store);
     // Update df
-    process::update_feature_names(sep_text);
+    process::update_feature_names(sep_text, &mut store);
+    // Get result
+    let res = process::get_global_similarity(req.id.clone(), &tf_array, &store);
 
-    let res = process::get_global_similarity(req.id.clone(), &tf_array);
-
-    // test
-    // println!("{:?}", res);
+    // Write data
+    data::write_data(&store).unwrap();
 
     Json(ResData { similarity: res })
 }

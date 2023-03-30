@@ -1,12 +1,9 @@
-use std::cmp::Ordering;
-
-use crate::data;
 use serde_json::{json, Value};
+use std::cmp::Ordering;
 
 // "n" -> "name"
 // "d" -> "df"
-pub fn update_feature_names(sep_text: Vec<&str>) -> () {
-    let mut store = data::open_data();
+pub fn update_feature_names(sep_text: Vec<&str>, store: &mut Value) -> () {
     let names = store["feature_names"].as_array_mut().unwrap();
 
     for word in sep_text {
@@ -26,8 +23,15 @@ pub fn update_feature_names(sep_text: Vec<&str>) -> () {
             names.push(json!({"n": word, "d": 1}));
         }
     }
+}
 
-    data::write_data(store).unwrap();
+// "i" -> "id"
+// "t" -> "text"
+pub fn add_paper(id: String, tf_array: &Vec<Value>, store: &mut Value) -> () {
+    store["paper"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"i": id, "t": tf_array}));
 }
 
 // "n" -> "name"
@@ -100,8 +104,11 @@ pub fn cosine_similarity(v_a: &Vec<f64>, v_b: &Vec<f64>) -> f64 {
     product_sum / (a_square_sum.sqrt() * b_square_sum.sqrt())
 }
 
-pub fn get_global_similarity(id: String, tf_array: &Vec<Value>) -> Vec<(f64, String)> {
-    let store = data::open_data();
+pub fn get_global_similarity(
+    id: String,
+    tf_array: &Vec<Value>,
+    store: &Value,
+) -> Vec<(f64, String)> {
     let papers = store["paper"].as_array().unwrap().to_vec();
 
     let cur_tf_idf_array = get_tf_idf_array(tf_array, &store);
