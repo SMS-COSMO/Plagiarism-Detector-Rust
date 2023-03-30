@@ -4,6 +4,19 @@
 
 ## 部署
 
+具体配置见 `Rocket.toml`。
+
+**生产：**
+
+```bash
+cargo build --release
+cargo run --release
+```
+
+端口: `9999`
+
+**测试：**
+
 ```bash
 cargo build
 cargo run

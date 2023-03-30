@@ -1,0 +1,11 @@
+[default]
+address = "0.0.0.0"
+limits = { json = "10 MiB" }
+
+[debug]
+port = 8000
+limits = { json = "50 MiB" }
+
+[release]
+port = 9999
+ip_header = false
