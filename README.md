@@ -3,8 +3,16 @@
 ![](https://img.shields.io/github/languages/code-size/SMS-COSMO/Plagiarism-Detector-Rust?color=yellow&style=flat-square)
 
 ## 部署
+修改配置见 `Rocket.toml`。
 
-具体配置见 `Rocket.toml`。
+1. 直接下载
+
+在 release 中，找到 `linux.zip`。解压，在文件夹内：
+```bash
+./plagiarism-detector-rust
+```
+
+2. 手动编译
 
 **生产：**
 
