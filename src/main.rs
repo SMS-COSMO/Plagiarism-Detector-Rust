@@ -39,7 +39,7 @@ fn get_similarity(req: &ReqData, store: &mut Value) -> Vec<(f64, String)> {
     // Add paper
     process::add_paper(req.id.clone(), &tf_array, store);
     // Update df
-    process::update_feature_names(sep_text, store);
+    process::update_feature_names(&sep_text, store);
 
     // Get result
     process::get_global_similarity(req.id.clone(), &tf_array, store)

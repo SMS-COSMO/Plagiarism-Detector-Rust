@@ -1,6 +1,7 @@
 [default]
 address = "0.0.0.0"
-limits = { json = "10 MiB" }
+# no file lock, worker has to be 1
+workers = 1
 
 [debug]
 port = 8000
@@ -9,3 +10,4 @@ limits = { json = "50 MiB" }
 [release]
 port = 9999
 ip_header = false
+limits = { json = "10 MiB" }

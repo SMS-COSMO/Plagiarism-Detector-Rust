@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 // "n" -> "name"
 // "d" -> "df"
-pub fn update_feature_names(sep_text: Vec<&str>, store: &mut Value) -> () {
+pub fn update_feature_names(sep_text: &Vec<String>, store: &mut Value) -> () {
     let names = store["feature_names"].as_array_mut().unwrap();
 
     for word in sep_text {
@@ -36,7 +36,7 @@ pub fn add_paper(id: String, tf_array: &Vec<Value>, store: &mut Value) -> () {
 
 // "n" -> "name"
 // "t" -> "tf"
-pub fn get_tf_array(sep_text: &Vec<&str>) -> Vec<Value> {
+pub fn get_tf_array(sep_text: &Vec<String>) -> Vec<Value> {
     let mut sorted_sep_text = sep_text.clone();
     sorted_sep_text.sort();
 

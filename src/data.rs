@@ -24,7 +24,7 @@ pub fn open_data() -> Value {
 }
 
 // Get stopword list from stopwords.txt
-pub fn get_stop_words<'a>() -> Vec<String> {
+pub fn get_stop_words() -> Vec<String> {
     let f = std::fs::read_to_string("stopwords.txt")
         .expect("[data::get_stop_words] failed to open stopwords.txt");
 
