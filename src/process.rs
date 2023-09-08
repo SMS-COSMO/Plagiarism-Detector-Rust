@@ -3,14 +3,14 @@ use std::cmp::Ordering;
 
 // "n" -> "name"
 // "d" -> "df"
-pub fn update_feature_names(sep_text: &Vec<String>, store: &mut Value) -> () {
+pub fn update_feature_names(sep_text: &[&str], store: &mut Value) {
     let names = store["feature_names"].as_array_mut().unwrap();
 
     for word in sep_text {
         let mut find = false;
         for i in 0..names.len() {
             let name = &mut names[i];
-            if name["n"].as_str().unwrap() == word {
+            if name["n"].as_str().unwrap() == *word {
                 find = true;
 
                 let df = name["d"].as_i64().unwrap();
@@ -27,17 +27,17 @@ pub fn update_feature_names(sep_text: &Vec<String>, store: &mut Value) -> () {
 
 // "i" -> "id"
 // "t" -> "text"
-pub fn add_paper(id: String, tf_array: &Vec<Value>, store: &mut Value) -> () {
+pub fn add_paper(id: &str, tf_array: &[Value], store: &mut Value) {
     store["paper"]
         .as_array_mut()
         .unwrap()
-        .push(json!({"i": id, "t": tf_array}));
+        .push(json!({ "i": id, "t": tf_array }));
 }
 
 // "n" -> "name"
 // "t" -> "tf"
-pub fn get_tf_array(sep_text: &Vec<String>) -> Vec<Value> {
-    let mut sorted_sep_text = sep_text.clone();
+pub fn get_tf_array(sep_text: &[&str]) -> Vec<Value> {
+    let mut sorted_sep_text = sep_text.to_vec();
     sorted_sep_text.sort();
 
     let mut res: Vec<Value> = vec![];
@@ -60,7 +60,7 @@ pub fn get_tf_array(sep_text: &Vec<String>) -> Vec<Value> {
 }
 
 // Get the tf-idf(smooth) characteristics
-pub fn get_tf_idf_array(paper: &Vec<Value>, store: &Value) -> Vec<f64> {
+pub fn get_tf_idf_array(paper: &[Value], store: &Value) -> Vec<f64> {
     let names = store["feature_names"].as_array().unwrap();
 
     let mut res: Vec<f64> = vec![];
@@ -90,7 +90,7 @@ pub fn get_tf_idf_array(paper: &Vec<Value>, store: &Value) -> Vec<f64> {
     res
 }
 
-pub fn cosine_similarity(v_a: &Vec<f64>, v_b: &Vec<f64>) -> f64 {
+pub fn cosine_similarity(v_a: &[f64], v_b: &[f64]) -> f64 {
     let mut product_sum = 0.0;
     let mut a_square_sum = 0.0;
     let mut b_square_sum = 0.0;
@@ -104,11 +104,7 @@ pub fn cosine_similarity(v_a: &Vec<f64>, v_b: &Vec<f64>) -> f64 {
     product_sum / (a_square_sum.sqrt() * b_square_sum.sqrt())
 }
 
-pub fn get_global_similarity(
-    id: String,
-    tf_array: &Vec<Value>,
-    store: &Value,
-) -> Vec<(f64, String)> {
+pub fn global_similarity(id: &str, tf_array: &[Value], store: &Value) -> Vec<(f64, String)> {
     let papers = store["paper"].as_array().unwrap().to_vec();
 
     let cur_tf_idf_array = get_tf_idf_array(tf_array, &store);

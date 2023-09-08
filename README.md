@@ -8,7 +8,7 @@
 1. 直接下载
 
 在 release 中，找到 `linux.zip`。解压，在文件夹内：
-```bash
+```sh
 ./plagiarism-detector-rust
 ```
 
@@ -16,8 +16,7 @@
 
 **生产：**
 
-```bash
-cargo build --release
+```sh
 cargo run --release
 ```
 
@@ -25,8 +24,7 @@ cargo run --release
 
 **测试：**
 
-```bash
-cargo build
+```sh
 cargo run
 ```
 
