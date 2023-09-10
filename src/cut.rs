@@ -1,19 +1,14 @@
-use crate::data;
 use jieba_rs::Jieba;
 
 // Cut paper with jieba
-pub fn cut<'a>(text: &String, jieba: &Jieba) -> Vec<String> {
-    let sep_list = jieba.cut(text.as_str(), false).to_vec();
-
-    // Use stopwords
-    let stop_words = data::get_stop_words();
-
-    let mut res_list = vec![];
-    for word in sep_list {
-        if !stop_words.contains(&word.to_string()) {
-            res_list.push(word.to_string());
-        }
-    }
-
-    res_list
+pub fn cut<'a>(
+    text: &'a str,
+    jieba: &Jieba,
+    stop_words: &std::collections::HashSet<String>,
+) -> Vec<&'a str> {
+    jieba
+        .cut(text, false)
+        .into_iter()
+        .filter(|word| !stop_words.contains(*word))
+        .collect()
 }
