@@ -11,7 +11,7 @@ serde_json = { version = "1" }
 version = "0.12.10"
 features = [
     "runtime-tokio-native-tls",
-    "sqlx-sqlite",
+    "sqlx-mysql",
 ]
 
 [dev-dependencies]

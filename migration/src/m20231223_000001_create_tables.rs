@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
                             .primary_key(),
                     )
                     .col(ColumnDef::new(Papers::Pid).string().not_null())
-                    .col(ColumnDef::new(Papers::Text).string().not_null())
+                    .col(ColumnDef::new(Papers::Text).text().not_null())
                     .to_owned(),
             )
             .await?;

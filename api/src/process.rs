@@ -49,16 +49,18 @@ pub async fn similarity(
 }
 
 pub async fn update_feature_names(sep_text: &[&str], db: &DbConn) -> Result<(), DbErr> {
-    let names = Query::list_names(db).await.unwrap();
+    let mut names = Query::list_names(db).await.unwrap();
 
     for word in sep_text {
         let mut found = false;
-        for name in &names {
+        for name in &mut names {
             if name.name == *word {
+                println!("{} {}", word, name.df);
                 found = true;
                 if let Err(e) = Mutation::update_name(db, &name.name, name.df + 1).await {
                     return Err(e);
                 }
+                name.df += 1;
                 break;
             }
         }
@@ -67,6 +69,8 @@ pub async fn update_feature_names(sep_text: &[&str], db: &DbConn) -> Result<(), 
             if let Err(e) = Mutation::add_name(db, &word, 1).await {
                 return Err(e);
             }
+            // dummy indicator to avoid the same word being added repeatedly
+            names.push(entity::name::Model { id: 0, name: String::from(*word), df: 1 });
         }
     }
 
