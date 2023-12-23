@@ -2,11 +2,10 @@
 name = "plagiarism-detector-rust"
 version = "1.0.0"
 edition = "2021"
+publish = false
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [".", "api", "service", "entity", "migration"]
 
 [dependencies]
-jieba-rs = "0.6.7"
-rocket = { version = "0.5.0-rc.3", features = ["json"] }
-serde = "1.0.157"
-serde_json = "1.0.94"
+plagiarism-detector-rust-api = { path = "api" }
