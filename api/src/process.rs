@@ -55,7 +55,6 @@ pub async fn update_feature_names(sep_text: &[&str], db: &DbConn) -> Result<(), 
         let mut found = false;
         for name in &mut names {
             if name.name == *word {
-                println!("{} {}", word, name.df);
                 found = true;
                 if let Err(e) = Mutation::update_name(db, &name.name, name.df + 1).await {
                     return Err(e);
@@ -70,7 +69,11 @@ pub async fn update_feature_names(sep_text: &[&str], db: &DbConn) -> Result<(), 
                 return Err(e);
             }
             // dummy indicator to avoid the same word being added repeatedly
-            names.push(entity::name::Model { id: 0, name: String::from(*word), df: 1 });
+            names.push(entity::name::Model {
+                id: 0,
+                name: String::from(*word),
+                df: 1,
+            });
         }
     }
 
