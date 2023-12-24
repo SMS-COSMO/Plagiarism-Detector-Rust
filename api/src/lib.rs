@@ -1,6 +1,7 @@
 extern crate rocket;
 
 use rocket::fairing::{self, AdHoc};
+use rocket::http::Status;
 use rocket::serde::json::Json;
 use rocket::{Build, Rocket};
 
@@ -22,22 +23,42 @@ async fn check(
     data: Json<ReqData>,
     state: &rocket::State<SharedData>,
     conn: Connection<'_, Db>,
-) -> Json<ResData> {
+) -> (Status, Json<ResData>) {
     let req: ReqData = data.into_inner();
     let db = conn.into_inner();
 
     match process::similarity(&req, req.write, db, &state.jieba, &state.stop_words).await {
-        Ok(r) => Json(ResData {
-            code: 200,
-            msg: format!("{}成功", if req.write { "加入" } else { "查询" }),
-            similarity: r,
-        }),
-        Err(e) => Json(ResData {
-            code: 500,
-            msg: e.to_string(),
-            similarity: [].to_vec(),
-        }),
+        Ok(r) => (
+            Status::Ok,
+            Json(ResData {
+                msg: format!("{}成功", if req.write { "加入" } else { "查询" }),
+                similarity: Some(r),
+            }),
+        ),
+        Err(e) => (
+            Status::InternalServerError,
+            Json(ResData {
+                msg: e.to_string(),
+                similarity: None,
+            }),
+        ),
     }
+}
+
+#[rocket::catch(404)]
+fn not_found(req: &rocket::Request) -> Json<ResData> {
+    Json(ResData {
+        msg: format!("'{}'不存在", req.uri()),
+        similarity: None,
+    })
+}
+
+#[rocket::catch(400)]
+fn bad_req() -> Json<ResData> {
+    Json(ResData {
+        msg: "调用有误".to_string(),
+        similarity: None,
+    })
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
@@ -52,6 +73,7 @@ async fn start() -> Result<(), rocket::Error> {
         .attach(Db::init())
         .attach(AdHoc::try_on_ignite("Migrations", run_migrations))
         .mount("/", rocket::routes![check])
+        .register("/", rocket::catchers![not_found, bad_req])
         .manage(SharedData {
             jieba: jieba_rs::Jieba::new(),
             stop_words: data::stop_words(),

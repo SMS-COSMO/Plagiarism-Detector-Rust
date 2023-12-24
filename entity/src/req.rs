@@ -8,9 +8,8 @@ pub struct ReqData {
 
 #[derive(Serialize, Debug)]
 pub struct ResData {
-    pub code: i16,
     pub msg: String,
-    pub similarity: Vec<(f64, String)>,
+    pub similarity: Option<Vec<(f64, String)>>,
 }
 
 /// Data shared through services as a Rocket state.
