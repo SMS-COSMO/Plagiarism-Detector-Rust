@@ -17,6 +17,7 @@ mod process;
 
 pub use entity::paper;
 pub use entity::paper::Entity as Post;
+use plagiarism_detector_rust_service::Query;
 
 #[rocket::post("/", format = "json", data = "<data>")]
 async fn check(
@@ -26,6 +27,31 @@ async fn check(
 ) -> (Status, Json<ResData>) {
     let req: ReqData = data.into_inner();
     let db = conn.into_inner();
+
+    if req.write {
+        match Query::find_paper_by_pid(db, &req.id).await {
+            Ok(res) => {
+                if res.is_some() {
+                    return (
+                        Status::BadRequest,
+                        Json(ResData {
+                            msg: format!("论文'{}'已存在", req.id),
+                            similarity: None,
+                        }),
+                    );
+                }
+            }
+            Err(e) => {
+                return (
+                    Status::InternalServerError,
+                    Json(ResData {
+                        msg: e.to_string(),
+                        similarity: None,
+                    }),
+                );
+            }
+        }
+    }
 
     match process::similarity(&req, req.write, db, &state.jieba, &state.stop_words).await {
         Ok(r) => (
