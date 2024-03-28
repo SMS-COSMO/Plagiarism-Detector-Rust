@@ -117,7 +117,7 @@ pub async fn get_tf_idf_array(paper: &[Value], db: &DbConn) -> Vec<f64> {
                 // tf-idf = tf * idf
                 // idf(smooth) = ln((1 + nd) / (1 + df)) + 1
                 let tf = word["t"].as_f64().unwrap() / paper.len() as f64;
-                let idf = 1.0 + f64::ln((1.0 + nd) / (1.0 + name.df as f64));
+                let idf = 1.0 + f64::log10(nd / (1.0 + name.df as f64));
 
                 res.push(tf * idf);
                 found = true;
