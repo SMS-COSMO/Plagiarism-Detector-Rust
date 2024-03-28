@@ -16,5 +16,6 @@ async-std = { version = "1", features = ["attributes", "tokio1"] }
 version = "0.12.10"
 features = [
   "runtime-tokio-native-tls",
-  "sqlx-mysql",
+  # "sqlx-mysql",
+  "sqlx-sqlite",
 ]

@@ -3,7 +3,7 @@ address = "0.0.0.0"
 
 [default.databases.sea_orm]
 # sqlite
-# url = "sqlite://db.sqlite?mode=rwc"
+url = "sqlite://db.sqlite?mode=rwc"
 
 # mysql
-url = "mysql://root:@localhost/pdrs"
+# url = "mysql://root:@localhost/pdrs"
